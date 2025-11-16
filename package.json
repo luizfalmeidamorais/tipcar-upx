@@ -1,0 +1,58 @@
+{
+  "name": "tipcar",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev --turbopack",
+    "build": "next build",
+    "start": "next start",
+    "prisma:generate": "prisma generate",
+    "prisma:migrate": "prisma migrate dev",
+    "auth:generate": "npx @better-auth/cli@latest generate",
+    "vapid:keys": "npx web-push generate-vapid-keys"
+  },
+  "dependencies": {
+    "@heroui/react": "^2.8.5",
+    "@hookform/resolvers": "^5.2.2",
+    "@mercadopago/sdk-react": "^1.0.6",
+    "@prisma/client": "^6.19.0",
+    "@serwist/precaching": "^9.2.1",
+    "@serwist/sw": "^9.2.1",
+    "@stripe/react-stripe-js": "^5.3.0",
+    "@stripe/stripe-js": "^8.4.0",
+    "@tanstack/react-query": "^5.90.8",
+    "@turf/turf": "^7.2.0",
+    "better-auth": "^1.3.34",
+    "framer-motion": "^12.23.24",
+    "lucide-react": "^0.545.0",
+    "maplibre-gl": "^5.12.0",
+    "mercadopago": "^2.10.0",
+    "next": "16.0.0-beta.0",
+    "next-safe-action": "^8.0.11",
+    "next-themes": "^0.4.6",
+    "react": "19.2.0",
+    "react-dom": "19.2.0",
+    "react-hook-form": "^7.66.0",
+    "stripe": "^19.3.1",
+    "zod": "^4.1.12"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.2.5",
+    "@serwist/turbopack": "10.0.0-preview.14",
+    "@tailwindcss/postcss": "^4.1.17",
+    "@types/node": "^20.19.25",
+    "@types/react": "19.2.2",
+    "@types/react-dom": "19.2.2",
+    "esbuild-wasm": "0.25.8",
+    "husky": "^9.1.7",
+    "prisma": "^6.19.0",
+    "serwist": "10.0.0-preview.14",
+    "tailwindcss": "^4.1.17",
+    "typescript": "^5.9.3",
+    "ultracite": "5.5.0"
+  },
+  "engines": {
+    "node": ">=20.9.0",
+    "pnpm": ">=9"
+  }
+}

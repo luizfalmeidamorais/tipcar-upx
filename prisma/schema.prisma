@@ -1,0 +1,198 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id @default(uuid())
+  name          String
+  email         String
+  emailVerified Boolean   @default(false)
+  image         String?
+  role          String    @default("user")
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @default(now()) @updatedAt
+  sessions      Session[]
+  accounts      Account[]
+
+  isDriver     Boolean      @default(false)
+  driverStatus DriverStatus @default(PENDING)
+  points       Int          @default(0)
+
+  ridesAsDriver      Ride[]              @relation("DriverRides")
+  rideRequests       RideRequest[]
+  ridePassengers     RidePassenger[]
+  ledgers            PointsLedger[]
+  redemptions        Redemption[]
+  DriverVerification DriverVerification?
+
+  @@unique([email])
+  @@map("user")
+}
+
+model Session {
+  id        String   @id @default(uuid())
+  expiresAt DateTime
+  token     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  ipAddress String?
+  userAgent String?
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([token])
+  @@map("session")
+}
+
+model Account {
+  id                    String    @id @default(uuid())
+  accountId             String
+  providerId            String
+  userId                String
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  @@map("account")
+}
+
+model Verification {
+  id         String   @id @default(uuid())
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @default(now()) @updatedAt
+
+  @@map("verification")
+}
+
+enum DriverStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model DriverVerification {
+  id            String       @id @default(cuid())
+  userId        String       @unique
+  user          User         @relation(fields: [userId], references: [id])
+  // Campos simples p/ protótipo
+  licenseNumber String
+  vehicleModel  String
+  plate         String
+  status        DriverStatus @default(PENDING)
+  createdAt     DateTime     @default(now())
+}
+
+model Ride {
+  id          String  @id @default(cuid())
+  driverId    String
+  driver      User    @relation("DriverRides", fields: [driverId], references: [id])
+  title       String
+  description String?
+  priceCents  Int
+  capacity    Int
+
+  // ✅ nomes exibidos no front
+  originName String
+  destName   String
+
+  // ✅ Geo e rota
+  routeGeoJson String
+  originLat    Float
+  originLng    Float
+  destLat      Float
+  destLng      Float
+
+  startsAt   DateTime
+  createdAt  DateTime        @default(now())
+  requests   RideRequest[]
+  passengers RidePassenger[]
+
+  status      RideStatus @default(OPEN) // 👈 novo
+  cancelledAt DateTime? // 👈 opcional
+}
+
+enum RideStatus {
+  OPEN
+  CANCELLED
+  COMPLETED
+}
+
+model RideRequest {
+  id        String        @id @default(cuid())
+  rideId    String
+  userId    String
+  ride      Ride          @relation(fields: [rideId], references: [id])
+  user      User          @relation(fields: [userId], references: [id])
+  status    RequestStatus @default(PENDING)
+  createdAt DateTime      @default(now())
+}
+
+enum RequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model RidePassenger {
+  id        String   @id @default(cuid())
+  rideId    String
+  userId    String
+  ride      Ride     @relation(fields: [rideId], references: [id])
+  user      User     @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+}
+
+model PointsLedger {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  delta     Int // + ganha, - gasta
+  reason    String
+  rideId    String?
+  createdAt DateTime @default(now())
+}
+
+model Partner {
+  id        String   @id @default(cuid())
+  name      String
+  logo      String?
+  createdAt DateTime @default(now())
+  rewards   Reward[]
+}
+
+model Reward {
+  id          String       @id @default(cuid())
+  partnerId   String
+  partner     Partner      @relation(fields: [partnerId], references: [id])
+  name        String
+  cost        Int // pontos necessários
+  stock       Int          @default(0)
+  createdAt   DateTime     @default(now())
+  redemptions Redemption[]
+}
+
+model Redemption {
+  id        String   @id @default(cuid())
+  rewardId  String
+  reward    Reward   @relation(fields: [rewardId], references: [id])
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  code      String // código simples gerado
+  createdAt DateTime @default(now())
+}
