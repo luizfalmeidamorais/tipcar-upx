@@ -24,6 +24,8 @@ function haversineKm(
 // tipo interno pra deixar TS feliz
 type SearchItem = {
   id: string;
+  driverId: string;            // 👈 ADICIONADO
+
   originName: string;
   originLat: number;
   originLng: number;
@@ -41,6 +43,7 @@ type SearchItem = {
 
   km: number | null;
 };
+
 
 export async function searchRides(
   fd: FormData
