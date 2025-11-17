@@ -27,7 +27,7 @@ export async function searchRides(fd: FormData) {
     headers: await headers(),
   });
   const me = session?.user;
-  const userId = me?.id ?? null;
+  const userId = me?.id ?? undefined;
 
   const q = String(fd.get("q") || "")
     .trim()
