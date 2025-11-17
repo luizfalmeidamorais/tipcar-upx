@@ -1,15 +1,14 @@
 "use server";
 
-import { headers } from "next/headers";
-import { auth } from "@/lib/auth";
-import { authCLient } from "@/lib/auth-client";
+import type { RequestStatus, RideStatus } from "@prisma/client";
+import { getServerSession } from "@/lib/get-session";
 import prisma from "@/lib/prisma";
 
 function haversineKm(
   a: { lat: number; lng: number },
   b: { lat: number; lng: number }
 ) {
-  const R = 6371;
+  const R = 6371; // km
   const toRad = (v: number) => (v * Math.PI) / 180;
 
   const dLat = toRad(b.lat - a.lat);
@@ -22,17 +21,39 @@ function haversineKm(
   return 2 * R * Math.asin(Math.sqrt(s));
 }
 
-export async function searchRides(fd: FormData) {
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  });
+// tipo interno pra deixar TS feliz
+type SearchItem = {
+  id: string;
+  originName: string;
+  originLat: number;
+  originLng: number;
+  destName: string;
+  destLat: number;
+  destLng: number;
+  departAt: string;
+  seatsTotal: number;
+  seatsAvail: number;
+
+  isDriver: boolean;
+  isPassenger: boolean;
+  requestStatus: RequestStatus | null;
+  rideStatus: RideStatus;
+
+  km: number | null;
+};
+
+export async function searchRides(
+  fd: FormData
+): Promise<{ items: SearchItem[] }> {
+  const session = await getServerSession();
   const me = session?.user;
-  const userId = me?.id ?? undefined;
+  // importante: NUNCA null, sempre string ou undefined
+  const userId: string | undefined = me?.id ?? undefined;
 
   const q = String(fd.get("q") || "")
     .trim()
     .toLowerCase();
-  const near = String(fd.get("near") || "") === "true";
+  const near = String(fd.get("near") || "true") === "true";
   const lat = Number(fd.get("lat"));
   const lng = Number(fd.get("lng"));
 
@@ -48,32 +69,30 @@ export async function searchRides(fd: FormData) {
     where: whereTime,
     orderBy: { startsAt: "asc" },
     include: {
-      passengers: { where: { userId } },
-      requests: { where: { userId } },
+      passengers: userId ? { where: { userId } } : undefined,
+      requests: userId ? { where: { userId } } : undefined,
       driver: true,
     },
   });
 
-  let items = rides.map((r) => ({
+  let items: SearchItem[] = rides.map((r) => ({
     id: r.id,
-    originName: (r as any).originName ?? "Origem",
+    originName: r.originName,
     originLat: r.originLat,
     originLng: r.originLng,
-    destName: (r as any).destName ?? "Destino",
+    destName: r.destName,
     destLat: r.destLat,
     destLng: r.destLng,
     departAt: r.startsAt.toISOString(),
     seatsTotal: r.capacity,
     seatsAvail: r.capacity - r.passengers.length,
 
-    // 🔥 status do usuário nessa carona
     isDriver: userId === r.driverId,
     isPassenger: r.passengers.length > 0,
     requestStatus: r.requests[0]?.status ?? null,
+    rideStatus: r.status,
 
-    // 🔥 status global da carona
-    rideStatus: r.status, // "ACTIVE" | "CANCELLED"
-    km: null,
+    km: null, // <- aqui já é number | null
   }));
 
   if (hasQuery) {
