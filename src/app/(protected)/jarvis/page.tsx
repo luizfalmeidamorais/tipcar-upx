@@ -5,7 +5,7 @@ export default function JarvisPage() {
         <div className="flex min-h-dvh flex-col bg-black">
             <iframe
                 className="w-full flex-1 border-none"
-                src="https://andrefortunato6.github.io/JARVIS-chatbot/"
+                src="https://jarvis-chatbot-2.onrender.com/"
             />
         </div>
     );
