@@ -78,25 +78,28 @@ export async function searchRides(
     },
   });
 
-  let items: SearchItem[] = rides.map((r) => ({
-    id: r.id,
-    originName: r.originName,
-    originLat: r.originLat,
-    originLng: r.originLng,
-    destName: r.destName,
-    destLat: r.destLat,
-    destLng: r.destLng,
-    departAt: r.startsAt.toISOString(),
-    seatsTotal: r.capacity,
-    seatsAvail: r.capacity - r.passengers.length,
+let items: SearchItem[] = rides.map((r) => ({
+  id: r.id,
+  driverId: r.driverId,                 // 👈 ADICIONADO
 
-    isDriver: userId === r.driverId,
-    isPassenger: r.passengers.length > 0,
-    requestStatus: r.requests[0]?.status ?? null,
-    rideStatus: r.status,
+  originName: r.originName,
+  originLat: r.originLat,
+  originLng: r.originLng,
+  destName: r.destName,
+  destLat: r.destLat,
+  destLng: r.destLng,
+  departAt: r.startsAt.toISOString(),
+  seatsTotal: r.capacity,
+  seatsAvail: r.capacity - r.passengers.length,
 
-    km: null, // <- aqui já é number | null
-  }));
+  isDriver: userId === r.driverId,
+  isPassenger: r.passengers.length > 0,
+  requestStatus: r.requests[0]?.status ?? null,
+  rideStatus: r.status,
+
+  km: null,
+}));
+
 
   if (hasQuery) {
     items = items.filter((i) =>
