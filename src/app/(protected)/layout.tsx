@@ -1,12 +1,17 @@
-import BottomNav from "@/components/BottomNavServer";
-import { getServerSession } from "@/lib/get-session";
 import { redirect } from "next/navigation";
 import type { ReactNode } from "react";
+import BottomNav from "@/components/BottomNavServer";
+import { getServerSession } from "@/lib/get-session";
+import "maplibre-gl/dist/maplibre-gl.css";
 
-export default async function AuthLayout({ children }: { children: ReactNode }) {
-    const session = await getServerSession()
+export default async function AuthLayout({
+    children,
+}: {
+    children: ReactNode;
+}) {
+    const session = await getServerSession();
     if (!session) {
-        redirect("/auth/entrar")
+        redirect("/auth");
     }
 
     return (

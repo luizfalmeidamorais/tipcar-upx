@@ -63,7 +63,10 @@ async function geocode(address: string): Promise<LatLng> {
   if (!res.ok) throw new Error("Falha na geocodificação");
   const data = await res.json();
   if (!data?.[0]) throw new Error(`Endereço não encontrado: ${address}`);
-  return { lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon) };
+  return {
+    lat: Number.parseFloat(data[0].lat),
+    lng: Number.parseFloat(data[0].lon),
+  };
 }
 
 async function routeOSRM(origin: LatLng, dest: LatLng) {
@@ -130,9 +133,11 @@ export async function createRide(fd: FormData) {
   const destName = String(fd.get("destName") || "").trim();
   const departAt = String(fd.get("departAt") || ""); // <input type="datetime-local" name="departAt">
   const capacity = Number(fd.get("seatsTotal") || 1);
-  const priceCents = Number(fd.get("priceCents") || 0); // 👈 agora aceitando preço
+  const priceStr = String(fd.get("priceReais") || "").trim();
+  const priceNumber = Number.parseFloat(priceStr.replace(",", "."));
+  const priceCents = Math.round(priceNumber * 100);
 
-  if (!originName || !destName) throw new Error("Informe origem e destino");
+  if (!(originName && destName)) throw new Error("Informe origem e destino");
   if (!departAt) throw new Error("Informe data/hora de saída");
 
   // Converte o local BR -> UTC (para gravar no banco em UTC)
@@ -150,7 +155,7 @@ export async function createRide(fd: FormData) {
 
   const title = `${originName} → ${destName}`;
 
-  await prisma.ride.create({
+  const ride = await prisma.ride.create({
     data: {
       driverId: user.id,
       title,
@@ -167,5 +172,5 @@ export async function createRide(fd: FormData) {
     },
   });
 
-  return { ok: true };
+  return { id: ride.id };
 }

@@ -1,7 +1,7 @@
 "use server";
 
 import { getServerSession } from "@/lib/get-session";
-import { addPoints } from "@/lib/points";
+import { addPoints, removePoints } from "@/lib/points";
 import prisma from "@/lib/prisma";
 
 export async function requestSeat(rideId: string) {
@@ -54,34 +54,41 @@ export async function approveRequest(requestId: string) {
   return { ok: true };
 }
 
+// cancelar carona (motorista)
 export async function cancelRide(fd: FormData) {
-  const session = await getServerSession();
-  const user = session?.user;
-  if (!user) throw new Error("Faça login");
-
   const rideId = String(fd.get("rideId") || "");
+  const session = await getServerSession();
+  const me = session?.user;
+  if (!me) throw new Error("Login necessário");
+
   const ride = await prisma.ride.findUnique({
     where: { id: rideId },
-    select: { id: true, driverId: true, status: true },
+    include: {
+      passengers: true,
+      requests: true
+    }
   });
   if (!ride) throw new Error("Carona não encontrada");
-  if (ride.driverId !== user.id)
-    throw new Error("Apenas o motorista pode cancelar");
-  if (ride.status !== "OPEN") throw new Error("Carona não está aberta");
+  if (ride.driverId !== me.id) throw new Error("Somente o motorista");
+  if (ride.status !== "OPEN") throw new Error("Já cancelada");
 
+  // remove pontos
   await prisma.$transaction(async (tx) => {
-    // marca cancelada
+    // motorista perde 30
+    await removePoints(ride.driverId, 30, "Cancelou carona", ride.id);
+
+    // cada passageiro aprovado perde 20
+    for (const p of ride.passengers) {
+      await removePoints(p.userId, 20, "Carona cancelada", ride.id);
+    }
+
     await tx.ride.update({
-      where: { id: rideId },
-      data: { status: "CANCELLED", cancelledAt: new Date(), capacity: 0 },
+      where: { id: ride.id },
+      data: {
+        status: "CANCELLED",
+        cancelledAt: new Date(),
+      },
     });
-    // rejeita pedidos pendentes
-    await tx.rideRequest.updateMany({
-      where: { rideId, status: "PENDING" },
-      data: { status: "REJECTED" },
-    });
-    // (opcional) remover passageiros ou apenas manter histórico
-    // await tx.ridePassenger.deleteMany({ where: { rideId } })
   });
 
   return { ok: true };

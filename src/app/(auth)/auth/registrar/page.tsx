@@ -1,9 +1,18 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { User, Phone, IdCard, Mail, Lock, Eye, EyeOff, ChevronRight } from "lucide-react";
+import {
+    ChevronRight,
+    Eye,
+    EyeOff,
+    IdCard,
+    Lock,
+    Mail,
+    Phone,
+    User,
+} from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { authCLient } from "@/lib/auth-client";
 
 export default function Page() {
@@ -23,7 +32,7 @@ export default function Page() {
         e.preventDefault();
         setErr(null);
 
-        if (!name || !email || !pass || !pass2) {
+        if (!(name && email && pass && pass2)) {
             setErr("Preencha os campos obrigatórios.");
             return;
         }
@@ -36,7 +45,7 @@ export default function Page() {
         const { error } = await authCLient.signUp.email({
             email,
             password: pass,
-            name,                     // campo padrão suportado
+            name, // campo padrão suportado
             // Você pode persistir phone/cpf via "user metadata" no server (ex.: plugin/profile)
         });
 
@@ -55,50 +64,101 @@ export default function Page() {
         <div className="min-h-dvh w-full bg-gradient-to-b from-[#003a8c] via-[#004AAD] to-[#003a8c]">
             <div className="pt-[env(safe-area-inset-top)]" />
             <main className="mx-auto flex min-h-[calc(100dvh-80px)] w-full max-w-md flex-col justify-center px-5">
-                <motion.div initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
+                <motion.div
+                    animate={{ opacity: 1, y: 0 }}
+                    className="space-y-6"
+                    initial={{ opacity: 0, y: 14 }}
+                >
                     <header className="text-center text-white">
-                        <h1 className="text-2xl font-semibold">Criar conta</h1>
+                        <h1 className="font-semibold text-2xl">Criar conta</h1>
                         <p className="text-sm text-white/80">Preencha seus dados</p>
                     </header>
 
-                    <section className="rounded-2xl bg-white/95 p-5 shadow-xl backdrop-blur space-y-4">
-                        <form onSubmit={handleSubmit} className="space-y-4">
-                            <Field icon={<User className="h-4 w-4 text-slate-500" />} placeholder="Nome completo" value={name} onChange={setName} />
-                            <Field icon={<Phone className="h-4 w-4 text-slate-500" />} placeholder="(11) 98765-4321" type="tel" value={phone} onChange={setPhone} />
-                            <Field icon={<IdCard className="h-4 w-4 text-slate-500" />} placeholder="000.000.000-00" value={cpf} onChange={setCpf} />
-                            <Field icon={<Mail className="h-4 w-4 text-slate-500" />} placeholder="seu@email.com" type="email" value={email} onChange={setEmail} />
+                    <section className="space-y-4 rounded-2xl bg-white/95 p-5 shadow-xl backdrop-blur">
+                        <form className="space-y-4" onSubmit={handleSubmit}>
                             <Field
-                                icon={<Lock className="h-4 w-4 text-slate-500" />}
-                                type={show ? "text" : "password"}
-                                placeholder="Senha"
-                                end={<button type="button" onClick={() => setShow(s => !s)}>{show ? <EyeOff className="h-4 w-4 text-slate-500" /> : <Eye className="h-4 w-4 text-slate-500" />}</button>}
-                                value={pass}
-                                onChange={setPass}
+                                icon={<User className="h-4 w-4 text-slate-500" />}
+                                onChange={setName}
+                                placeholder="Nome completo"
+                                value={name}
                             />
                             <Field
+                                icon={<Phone className="h-4 w-4 text-slate-500" />}
+                                onChange={setPhone}
+                                placeholder="(11) 98765-4321"
+                                type="tel"
+                                value={phone}
+                            />
+                            <Field
+                                icon={<IdCard className="h-4 w-4 text-slate-500" />}
+                                onChange={setCpf}
+                                placeholder="000.000.000-00"
+                                value={cpf}
+                            />
+                            <Field
+                                icon={<Mail className="h-4 w-4 text-slate-500" />}
+                                onChange={setEmail}
+                                placeholder="seu@email.com"
+                                type="email"
+                                value={email}
+                            />
+                            <Field
+                                end={
+                                    <button onClick={() => setShow((s) => !s)} type="button">
+                                        {show ? (
+                                            <EyeOff className="h-4 w-4 text-slate-500" />
+                                        ) : (
+                                            <Eye className="h-4 w-4 text-slate-500" />
+                                        )}
+                                    </button>
+                                }
                                 icon={<Lock className="h-4 w-4 text-slate-500" />}
-                                type={show2 ? "text" : "password"}
-                                placeholder="Confirmar senha"
-                                end={<button type="button" onClick={() => setShow2(s => !s)}>{show2 ? <EyeOff className="h-4 w-4 text-slate-500" /> : <Eye className="h-4 w-4 text-slate-500" />}</button>}
-                                value={pass2}
+                                onChange={setPass}
+                                placeholder="Senha"
+                                type={show ? "text" : "password"}
+                                value={pass}
+                            />
+                            <Field
+                                end={
+                                    <button onClick={() => setShow2((s) => !s)} type="button">
+                                        {show2 ? (
+                                            <EyeOff className="h-4 w-4 text-slate-500" />
+                                        ) : (
+                                            <Eye className="h-4 w-4 text-slate-500" />
+                                        )}
+                                    </button>
+                                }
+                                icon={<Lock className="h-4 w-4 text-slate-500" />}
                                 onChange={setPass2}
+                                placeholder="Confirmar senha"
+                                type={show2 ? "text" : "password"}
+                                value={pass2}
                             />
 
-                            {err && <p className="text-sm text-red-600">{err}</p>}
+                            {err && <p className="text-red-600 text-sm">{err}</p>}
 
                             <motion.button
-                                whileTap={{ scale: 0.98 }}
+                                className="inline-flex w-full items-center justify-center gap-2 rounded-md bg-[#0D74CE] py-3 font-semibold text-white shadow disabled:opacity-60"
                                 disabled={loading}
-                                className="w-full rounded-md bg-[#0D74CE] py-3 font-semibold text-white shadow inline-flex items-center justify-center gap-2 disabled:opacity-60"
                                 type="submit"
+                                whileTap={{ scale: 0.98 }}
                             >
-                                {loading ? "Cadastrando..." : <>Cadastrar <ChevronRight className="h-4 w-4" /></>}
+                                {loading ? (
+                                    "Cadastrando..."
+                                ) : (
+                                    <>
+                                        Cadastrar <ChevronRight className="h-4 w-4" />
+                                    </>
+                                )}
                             </motion.button>
                         </form>
                     </section>
 
                     <p className="text-center text-sm text-white/90">
-                        Já tem conta? <a href="/login" className="font-semibold underline">Entrar</a>
+                        Já tem conta?{" "}
+                        <a className="font-semibold underline" href="/auth/entrar">
+                            Entrar
+                        </a>
                     </p>
                 </motion.div>
             </main>
@@ -126,11 +186,11 @@ function Field({
         <div className="flex items-center gap-2 rounded-md border border-slate-200 bg-slate-50 px-3">
             {icon}
             <input
+                className="h-11 w-full bg-transparent outline-none"
+                onChange={(e) => onChange?.(e.target.value)}
                 placeholder={placeholder}
                 type={type}
-                className="h-11 w-full bg-transparent outline-none"
                 value={value}
-                onChange={(e) => onChange?.(e.target.value)}
             />
             {end}
         </div>

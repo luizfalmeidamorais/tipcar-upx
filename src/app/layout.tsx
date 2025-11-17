@@ -2,22 +2,23 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { Providers } from "@/components/layout/providers";
 import { SerwistProvider } from "@/lib/client";
+import "maplibre-gl/dist/maplibre-gl.css";
 
-const APP_NAME = "TIPCAR"
-const APP_DESCRIPTION = "Aplicativo de carona"
+const APP_NAME = "TIPCAR";
+const APP_DESCRIPTION = "Aplicativo de carona";
 
 export const metadata: Metadata = {
   applicationName: APP_NAME,
   title: {
     default: APP_NAME,
-    template: `%s | ${APP_NAME}`
+    template: `%s | ${APP_NAME}`,
   },
   description: APP_DESCRIPTION,
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: APP_NAME
+    title: APP_NAME,
   },
   formatDetection: {
     telephone: false,
@@ -40,14 +41,13 @@ export default function RootLayout({
   return (
     <html lang="pt-BR">
       <head>
-        <link rel="manifest" href="/manifest.json" />
+        <link href="/manifest.json" rel="manifest" />
       </head>
 
       <body className="min-h-screen bg-gray-50 text-gray-900">
-        <SerwistProvider swUrl="/serwist/sw.js" options={{ type: "module" }}>
+        <SerwistProvider options={{ type: "module" }} swUrl="/serwist/sw.js">
           <Providers>{children}</Providers>
         </SerwistProvider>
-
       </body>
     </html>
   );
