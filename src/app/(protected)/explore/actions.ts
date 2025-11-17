@@ -1,6 +1,6 @@
 "use server";
 
-import type { RequestStatus, RideStatus } from "@prisma/client";
+import type { RequestStatus, RideStatus } from "@/generated/prisma";
 import { getServerSession } from "@/lib/get-session";
 import prisma from "@/lib/prisma";
 
